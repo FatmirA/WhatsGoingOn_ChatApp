@@ -2,60 +2,62 @@
 <html>
 <head>
 	<title>Chat</title>
+
+	<link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+	<script src="/socket.io/socket.io.js"></script>
+
 	<style type="text/css">
-		#chat {
-			height: 200px;
+		body{
+			margin-top: 30px;
 		}
-		#chatWrap {
-			float: left;
-			border: 1px #000 solid;
-			margin: 20px;
-		}
-		#contentWrap {
+		#messageArea{
 			display: none;
 		}
-		#nickWrap {
-			margin-top: 20px;
-		}
-		#users {
-			margin-top: 20px;
-		}
-		.error {
-			color: red;
-		}
-		.whisper {
+		#whisperBox{
 			color: grey;
-		}
-		.msg {
-			color: #000;
-			font-style: italic;
 		}
 	</style>
 
-	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
-	<script src="/socket.io/socket.io.js"></script>
 </head>
+
 <body>
-	<div id="nickWrap">
-		<p>Enter a Nickname</p>
-		<p id="nickError"></p>
-		<form id="setNick">
-			<input id="nickname" size="35">
-			<input type="submit">
-		</form>
-	</div>
+	<div class= "container">
+		<div id="userFormArea">
+			<div class="col-md-12">
+				<form id="setNick">
+					<div class="form-group">
+						<label> Enter Username</label>
+						<input id="nickname" class="form-control">
+						<br>
+						<p id="nickError"></p>
+						<br>
+						<input type="submit" class="btn btn-primary">
+					</div>
+				</form>
+			</div>
+		</div>	
 
-	<div id="contentWrap">
-		<div id="chatWrap">
-			<div id="chat"></div>
-			<form id="sendMessage">
-				<input id="message" size="35">
-				<input type="submit">
-			</form>
+		<div id="messageArea" class="row">
+			<div class="col-md-4">
+				<div class="well">
+					<h3>Online Users</h3>
+					<ul class="list-group" id="users"></ul>
+				</div>
+			</div>
+			<div class="col-md-8">
+				<div id="chat"></div>
+					<form id="MessageForm">
+						<div class="form-group" id="formGroup">
+							<label>Enter Message!</label>
+							<textarea id="message" class="form-control"></textarea>
+							<br>
+							<input type="submit" class="btn btn-primary" value="Send Message">
+						</div>
+				</form>
+			</div>
 		</div>
-	<div id="users"></div>
 	</div>
-
 
 	<script type="text/javascript">
 		jQuery(function($){
@@ -66,7 +68,7 @@
 				var	$nickBox = $('#nickname');
 				var $users = $('#users');
 
-				var $messageForm = $('#sendMessage');
+				var $messageForm = $('#MessageForm');
 				var $messageBox = $('#message');
 				var $chat = $('#chat');
 
@@ -74,8 +76,8 @@
 					e.preventDefault();
 					socket.emit('new user', $nickBox.val(), function(data) {
 						if (data) {
-							$('#nickWrap').hide();
-							$('#contentWrap').show();
+							$('#userFormArea').hide();
+							$('#messageArea').show();
 						} else {
 							$nickError.html('That username is already taken! Try again...');
 						}
@@ -86,7 +88,7 @@
 				socket.on('usernames', function(data) {
 					var html = '';
 					for(var i=0; i<data.length; i++){
-						html += data[i] + '<br>';
+						html += '<li class="list-group-item">' + data[i] + '</li>' ;
 					}
 					$users.html(html);
 				})
@@ -94,7 +96,7 @@
 				$messageForm.submit(function(e){
 					e.preventDefault();
 					socket.emit('send message', $messageBox.val(), function(data) {
-						$chat.append('<span class="error"><b>' + data + '</span><br/>');
+						$chat.append('<div class="well">' + data + '</div>');
 					});
 					$messageBox.val('');
 				});
@@ -110,11 +112,11 @@
 				});
 
 				function displayMsg(data){
-					$chat.append('<span class="msg"><b>'  + data.nick + ": </b>" + data.msg +"</span><br/>");
+					$chat.append('<div class="well"><b>'  + data.nick + ": </b>" + data.msg +"</div>");
 				};
 
 				socket.on('whisper', function(data) {
-					$chat.append('<span class="whisper"><b>'  + data.nick + ": </b>" + data.msg +"</span><br/>");
+					$chat.append('<div class="well" id="whisperBox"><b>'  + data.nick + ": </b>" + data.msg +"</div>");
 				});
 		});
 	</script>
